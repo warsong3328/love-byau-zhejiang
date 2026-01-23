@@ -352,7 +352,7 @@ const TipsSection: React.FC = () => (
         </div>
         <div className="bg-white p-5 rounded-2xl shadow-sm">
           <p className="text-xs text-hbau-accent font-bold mb-2">秘籍 03</p>
-          <p className="text-sm font-bold text-gray-800">同校专业按位次由高到低。如：动物医学 > 数据科学 > 园林，保证志愿梯度。</p>
+          <p className="text-sm font-bold text-gray-800">同校专业按位次由高到低。如：动物医学 &gt; 数据科学 &gt; 园林，保证志愿梯度。</p>
         </div>
       </div>
     </div>
