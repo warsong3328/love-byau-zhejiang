@@ -7,6 +7,17 @@ import {
   ScatterChart, Scatter, ZAxis, Cell
 } from 'recharts';
 
+// --- Data for Sidebar ---
+const TIPS_DATA = [
+  { title: "查位次先看近3年", content: "别只盯分数！重点看专业近3年浙江最低位次，比当年分数参考价值高太多，App里有现成走势线~" },
+  { title: "选科别踩坑", content: "物理必选能报动物医学、大数据这些热门专业；不限选科冲汉语言、审计学，按自己选科精准筛！" },
+  { title: "80志愿这么排", content: "20冲+40稳+20保，八一农大放在“稳”区中间位置，同校专业按分数从高到低填（动物医学→食品科学→园林）" },
+  { title: "调剂一定要勾“是”", content: "浙江平行志愿退档超可惜！勾了调剂，分数够院校线就大概率录取，后续还能转专业~" },
+  { title: "转专业真不难", content: "大一绩点达标就能转，不用找关系！浙江学长亲测，从园林转到动物医学没卡壳~" },
+  { title: "学费性价比拉满", content: "公办本科才4000-5500元/年，比民办省一半，贫困生资助申请超方便，入学就能办！" },
+  { title: "有问题这么问", content: "招生办电话4006819043，工作日打超管用；也能在App留留言，学长学姐看到会回~" }
+];
+
 // --- Helper Functions ---
 const getMatchLevel = (userRank: number, minRank: number): MatchLevel => {
   if (userRank <= minRank - 8000) return MatchLevel.SAFE;
@@ -15,6 +26,57 @@ const getMatchLevel = (userRank: number, minRank: number): MatchLevel => {
 };
 
 // --- Sub-components ---
+
+const SidebarNote: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+  <div className="bg-white p-4 rounded-[5px] border-b border-gray-200 hover:bg-white/80 transition-colors group">
+    <h4 className="text-hbau-accent font-black text-base mb-1">{title}</h4>
+    <p className="text-sm text-gray-600 leading-snug">{content}</p>
+    <div className="text-[10px] text-gray-400 text-right mt-2 uppercase tracking-tighter">更新时间：2026报考季</div>
+  </div>
+);
+
+const Sidebar: React.FC<{ isOpen: boolean; toggle: () => void }> = ({ isOpen, toggle }) => (
+  <>
+    {/* Mobile Toggle Icon */}
+    <button 
+      onClick={toggle}
+      className={`fixed left-4 bottom-8 z-50 md:hidden w-14 h-14 bg-hbau-green text-white rounded-full shadow-2xl flex items-center justify-center transition-transform ${isOpen ? 'rotate-180' : ''}`}
+    >
+      <i className={`fa-solid ${isOpen ? 'fa-xmark' : 'fa-lightbulb'} text-xl`}></i>
+    </button>
+
+    <aside className={`
+      fixed top-0 left-0 h-full bg-[#f5f5f5] z-40 overflow-y-auto transition-transform duration-300
+      w-[85%] md:w-[28%] lg:w-[25%] border-r border-gray-200
+      ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+    `}>
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-8 mt-4">
+          <i className="fa-solid fa-graduation-cap text-hbau-green text-xl"></i>
+          <h2 className="text-xl font-black text-gray-800 tracking-tighter">学姐的报考小便签</h2>
+        </div>
+        
+        <div className="space-y-1">
+          {TIPS_DATA.map((tip, idx) => (
+            <SidebarNote key={idx} title={tip.title} content={tip.content} />
+          ))}
+        </div>
+
+        <div className="mt-8 p-4 bg-hbau-light rounded-xl border border-hbau-green/20">
+          <p className="text-[10px] text-hbau-green font-bold text-center">本周已有 1,248 位浙江考生查阅</p>
+        </div>
+      </div>
+    </aside>
+
+    {/* Mobile Overlay */}
+    {isOpen && (
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
+        onClick={toggle}
+      ></div>
+    )}
+  </>
+);
 
 const Header: React.FC = () => (
   <header className="relative w-full h-72 overflow-hidden bg-hbau-green">
@@ -63,8 +125,6 @@ const MatchTool: React.FC = () => {
 
   const exportVolunteerTable = () => {
     if (results.length === 0) return;
-    
-    // 浙江 2023 志愿表格式 CSV Header
     const headers = ["志愿序号", "院校代码", "院校名称", "专业代码", "专业名称", "选科要求", "服从专业调剂", "建议", "参考学费/年"];
     const rows = results.slice(0, 15).map((res, index) => [
       index + 1,
@@ -77,7 +137,6 @@ const MatchTool: React.FC = () => {
       res.level,
       res.fee
     ]);
-
     const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -97,7 +156,6 @@ const MatchTool: React.FC = () => {
           <span className="bg-hbau-green text-white w-8 h-8 rounded-lg flex items-center justify-center">1</span>
           输入位次，精准匹配
         </h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div>
             <label className="block text-xs font-bold text-gray-400 mb-2 uppercase">My Rank / 我的位次</label>
@@ -129,7 +187,6 @@ const MatchTool: React.FC = () => {
             </button>
           </div>
         </div>
-
         {results.length > 0 && (
           <div className="mt-8 animate-fade-in">
             <div className="flex justify-between items-center mb-6">
@@ -141,7 +198,6 @@ const MatchTool: React.FC = () => {
                 <i className="fa-solid fa-file-excel"></i> 导出浙江志愿表 (.csv)
               </button>
             </div>
-            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {results.map((res, i) => (
                 <div key={i} className="p-5 rounded-2xl border-2 border-gray-50 bg-gray-50/50 hover:bg-white hover:border-hbau-green hover:shadow-xl transition-all group">
@@ -177,58 +233,61 @@ const ExperienceSection: React.FC = () => (
     <h2 className="text-2xl font-black text-gray-800 mb-8 flex items-center gap-2">
       <i className="fa-solid fa-comments text-hbau-accent"></i> 浙江学长说：八一农大这 4 点必看！
     </h2>
-    
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* Real Scene 1 */}
       <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100">
-        <div className="relative h-64 overflow-hidden">
-          {/* 这里是【图片替换处】：实验室实景图 */}
-          <img src="https://images.unsplash.com/photo-1579154235602-3c37ef7f3b33?auto=format&fit=crop&w=800&q=80" alt="Laboratory" className="w-full h-full object-cover" />
-          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs">
-            本科生重点实验室 · 浙江学长实拍
-          </div>
+        <div className="relative h-64 overflow-hidden bg-gray-100">
+          <img 
+            src="https://b72fcff.webp.li/Picgo//pathological anatomy/2026/01/2ee3462e7d259ea2ce58be5e0d63a535.jpg" 
+            alt="八一农大实验室实拍" 
+            className="w-full h-full object-cover" 
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
+              const textNode = document.createElement('div');
+              textNode.className = 'text-gray-400 font-bold text-sm';
+              textNode.innerText = '图片加载失败：八一农大实验室实拍';
+              (e.target as HTMLImageElement).parentElement!.appendChild(textNode);
+            }}
+          />
+          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs">本科生重点实验室 · 浙江学长实拍</div>
         </div>
         <div className="p-6">
-          <h4 className="text-lg font-bold text-gray-800 mb-3">① 科研不设门槛</h4>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            在大一只要你想，就能申请进课题组。实验室设备很新，跟着教授做大豆、动医项目，这种经历对考研或者就业都是降维打击。
-          </p>
+          <h4 className="text-lg font-bold text-gray-800 mb-3 text-hbau-accent">① 科研不设门槛</h4>
+          <p className="text-sm text-gray-500 leading-relaxed">在大一只要你想，就能申请进课题组。实验室设备很新，跟着教授做大豆、动医项目，这种经历对考研或者就业都是降维打击。</p>
         </div>
       </div>
-
-      {/* Real Scene 2 */}
       <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100">
-        <div className="relative h-64 overflow-hidden">
-          {/* 这里是【图片替换处】：体育场内景图 */}
-          <img src="https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&w=800&q=80" alt="Gym" className="w-full h-full object-cover" />
-          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs">
-            学校室内体育馆 · 下雪也能打球
-          </div>
+        <div className="relative h-64 overflow-hidden bg-gray-100">
+          <img 
+            src="https://b72fcff.webp.li/Picgo//pathological anatomy/2026/01/b67795caf8bbacc519e397de49c0a5e4.jpg" 
+            alt="八一农大体育馆内景" 
+            className="w-full h-full object-cover" 
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
+              const textNode = document.createElement('div');
+              textNode.className = 'text-gray-400 font-bold text-sm';
+              textNode.innerText = '图片加载失败：八一农大体育场内景';
+              (e.target as HTMLImageElement).parentElement!.appendChild(textNode);
+            }}
+          />
+          <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs">学校室内体育馆 · 下雪也能打球</div>
         </div>
         <div className="p-6">
-          <h4 className="text-lg font-bold text-gray-800 mb-3">② 运动超自由</h4>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            作为一个浙江人，北方的运动氛围真的强。学校体育场设施特别全，傍晚和老乡约场球，或者去跑步，生活节奏非常舒服。
-          </p>
+          <h4 className="text-lg font-bold text-gray-800 mb-3 text-hbau-accent">② 运动超自由</h4>
+          <p className="text-sm text-gray-500 leading-relaxed">作为一个浙江人，北方的运动氛围真的强。学校体育场设施特别全，傍晚和老乡约场球，或者去跑步，生活节奏非常舒服。</p>
         </div>
       </div>
-
       <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-hbau-green text-white p-8 rounded-[2rem]">
-           <h4 className="text-xl font-black mb-4 flex items-center gap-2">
-             <i className="fa-solid fa-repeat"></i> 转专业零门槛
-           </h4>
-           <p className="text-sm opacity-90 leading-relaxed">
-             如果你被调剂到了不喜欢的专业，别慌！大一绩点只要在班级前列（其实不难），就能申请转专业。没有乱七八糟的潜规则，浙江老乡亲测透明高效。
-           </p>
+           <h4 className="text-xl font-black mb-4 flex items-center gap-2"><i className="fa-solid fa-repeat"></i> 转专业零门槛</h4>
+           <p className="text-sm opacity-90 leading-relaxed">如果你被调剂到了不喜欢的专业，别慌！大一绩点只要在班级前列（其实不难），就能申请转专业。没有乱七八糟的潜规则，浙江老乡亲测透明高效。</p>
         </div>
         <div className="bg-gray-900 text-white p-8 rounded-[2rem]">
-           <h4 className="text-xl font-black mb-4 flex items-center gap-2">
-             <i className="fa-solid fa-wallet"></i> 钱包友好型
-           </h4>
-           <p className="text-sm opacity-90 leading-relaxed">
-             公办本科，学费基本都在 4000-5000 块左右，甚至还有 3000 块的创新班。比起浙江省内的民办本科动辄两三万，这里四年的学费够在浙江读一年！
-           </p>
+           <h4 className="text-xl font-black mb-4 flex items-center gap-2"><i className="fa-solid fa-wallet"></i> 钱包友好型</h4>
+           <p className="text-sm opacity-90 leading-relaxed">公办本科，学费基本都在 4000-5000 块左右，甚至还有 3000 块的创新班。比起浙江省内的民办本科动辄两三万，这里四年的学费够在浙江读一年！</p>
         </div>
       </div>
     </div>
@@ -327,14 +386,24 @@ const Footer: React.FC = () => (
 );
 
 const App: React.FC = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans selection:bg-hbau-green/30">
-      <Header />
-      <MatchTool />
-      <ChartAnalyst />
-      <ExperienceSection />
-      <TipsSection />
-      <Footer />
+    <div className="min-h-screen bg-gray-50 font-sans selection:bg-hbau-green/30 flex flex-col md:flex-row">
+      {/* Fixed Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+
+      {/* Main Content Area */}
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'md:ml-0' : 'md:ml-[28%] lg:ml-[25%]'}`}>
+        <Header />
+        <div className="relative">
+          <MatchTool />
+          <ChartAnalyst />
+          <ExperienceSection />
+          <TipsSection />
+          <Footer />
+        </div>
+      </main>
     </div>
   );
 };
